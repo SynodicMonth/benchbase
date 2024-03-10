@@ -21,6 +21,7 @@ import com.oltpbenchmark.api.BenchmarkModule;
 import com.oltpbenchmark.api.TransactionType;
 import com.oltpbenchmark.api.TransactionTypes;
 import com.oltpbenchmark.api.Worker;
+import com.oltpbenchmark.jdbc.QueryCacheHacker;
 import com.oltpbenchmark.types.DatabaseType;
 import com.oltpbenchmark.types.State;
 import com.oltpbenchmark.util.*;
@@ -77,6 +78,11 @@ public class DBWorkload {
       LOG.error("Missing Benchmark Class to load");
       printUsage(options);
       return;
+    }
+
+    if (argsLine.hasOption("cache")) {
+      LOG.info("Query Cache enabled");
+      QueryCacheHacker.getInstance().setEnabled();
     }
 
     // Seconds
@@ -552,6 +558,7 @@ public class DBWorkload {
         "[required] Benchmark class. Currently supported: "
             + pluginConfig.getList("/plugin//@name"));
     options.addOption("c", "config", true, "[required] Workload configuration file");
+    options.addOption(null, "cache", false, "Enable Query Cache");
     options.addOption(null, "create", true, "Initialize the database for this benchmark");
     options.addOption(null, "clear", true, "Clear all records in the database for this benchmark");
     options.addOption(null, "load", true, "Load data using the benchmark's data loader");

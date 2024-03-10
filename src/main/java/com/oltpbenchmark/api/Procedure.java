@@ -18,6 +18,7 @@
 package com.oltpbenchmark.api;
 
 import com.oltpbenchmark.jdbc.AutoIncrementPreparedStatement;
+import com.oltpbenchmark.jdbc.QueryCacheHacker;
 import com.oltpbenchmark.types.DatabaseType;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -108,10 +109,20 @@ public abstract class Procedure {
       Connection conn, SQLStmt stmt, int[] is) throws SQLException {
 
     PreparedStatement pStmt = null;
-
+    // HACK: if cache is needed, use AutoIAutoIncrementPreparedStatement
+    if (QueryCacheHacker.getInstance().isEnabled() && this.dbType == DatabaseType.MYSQL) {
+      if (is != null) {
+        pStmt =
+            new AutoIncrementPreparedStatement(
+                this.dbType, conn.prepareStatement(stmt.getSQL(), is));
+      } else {
+        pStmt =
+            new AutoIncrementPreparedStatement(this.dbType, conn.prepareStatement(stmt.getSQL()));
+      }
+    }
     // HACK: If the target system is Postgres, wrap the PreparedStatement in a special
     //       one that fakes the getGeneratedKeys().
-    if (is != null
+    else if (is != null
         && (this.dbType == DatabaseType.POSTGRES
             || this.dbType == DatabaseType.COCKROACHDB
             || this.dbType == DatabaseType.SQLSERVER
